@@ -8,18 +8,22 @@
     {
         static add_resource(namespace_clazz, constructor_name, resource_clazz)
         {
-            const storage_name = `_${constructor_name}_storage`;
+            const storage_name = `_resource_storage`;
             const storage = new Map();
-            namespace_clazz[storage_name] = storage;
-            namespace_clazz[constructor_name] = function(name, ...args) {
+
+            namespace_clazz[storage_name] ||= {};
+            namespace_clazz[storage_name][constructor_name] = storage;
+
+            namespace_clazz[constructor_name] = function new_resource(name, ...args) {
                 if (typeof name === 'string' || name instanceof String) {
                     let obj = storage.get(name);
                     if (obj === undefined) {
                         obj = {};
                         obj.__proto__ = resource_clazz.prototype;
-                        resource_clazz.apply(obj, args);
+                        resource_clazz.constructor().apply(obj, args);
                         obj._name = name;
-                        storage.put(name, obj);
+                        obj._from = namespace_clazz;
+                        storage.set(name, obj);
                     }
                     return obj;
                 }
@@ -42,13 +46,19 @@
     {
     };
 
-    class Engine
+    class Pipeline
     {
     };
 
-    Clazz.add_resource(Engine, 'program', Program);
-    Clazz.add_resource(Engine, 'texture', Texture);
-    Clazz.add_resource(Engine, 'pipeline', Pipeline);
+    class Engine
+    {
+        constructor()
+        {
+            Clazz.add_resource(this, 'program', Program);
+            Clazz.add_resource(this, 'texture', Texture);
+            Clazz.add_resource(this, 'pipeline', Pipeline);
+        }
+    };
 
     p3rr.Engine = Engine;
 }).call(this);
