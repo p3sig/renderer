@@ -8,7 +8,7 @@
     {
         static add_resource(namespace_clazz, constructor_name, resource_clazz)
         {
-            const storage_name = `_resource_storage`;
+            const storage_name = '_resource_storage';
             const storage = new Map();
 
             namespace_clazz[storage_name] ||= {};
