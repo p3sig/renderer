@@ -36,6 +36,67 @@
                 throw `Bad coercion`;
             };
         };
+
+        static as_read_only(obj)
+        {
+            // TODO
+            return obj;
+        };
+    };
+
+    class Resource_Descriptor
+    {
+        constructor()
+        {
+            this.reset();
+        }
+
+        reset()
+        {
+            this.force_dirty();
+            this._native_resource = null;
+            this._config = null;
+        }
+
+        force_dirty()
+        {
+            this._dirty = true;
+        }
+
+        native_resource()
+        {
+            if (this._dirty) {
+                this._do_destroy_native_resource(this._native_resource);
+                this._native_resource = this._do_create_native_resource();
+            }
+            return this._native_resource;
+        }
+
+        config()
+        {
+            if (this._config === null) {
+                this._config = this._do_create_default_config();
+                this.force_dirty();
+            }
+            return Clazz.as_read_only(this._config);
+        }
+
+        mutable_config()
+        {
+            if (this._config === null) {
+                this._config = this._do_create_default_config();
+            }
+            this.force_dirty();
+            return this._config;
+        }
+
+        _do_create_default_config() { throw "abstract"; }
+        _do_create_native_resource() { throw "abstract"; }
+        _do_destroy_native_resource(maybe_resource) { throw "abstract"; }
+    };
+
+    class Shader extends Resource_Descriptor
+    {
     };
 
     class Program
@@ -52,11 +113,13 @@
 
     class Engine
     {
-        constructor()
+        constructor(canvas)
         {
             Clazz.add_resource(this, 'program', Program);
             Clazz.add_resource(this, 'texture', Texture);
             Clazz.add_resource(this, 'pipeline', Pipeline);
+
+            this.ctx = canvas.getContext('webgl2');
         }
     };
 
