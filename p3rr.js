@@ -6,6 +6,16 @@
 
     class Clazz
     {
+        static create_resource(namespace_clazz, name, resource_clazz, ...args)
+        {
+            let obj = {};
+            obj.__proto__ = resource_clazz.prototype;
+            obj._name = name;
+            obj._from = namespace_clazz;
+            resource_clazz.constructor().apply(obj, args);
+            return obj;
+        }
+
         static add_resource(namespace_clazz, constructor_name, resource_clazz)
         {
             const storage_name = '_resource_storage';
@@ -20,9 +30,9 @@
                     if (obj === undefined) {
                         obj = {};
                         obj.__proto__ = resource_clazz.prototype;
-                        resource_clazz.constructor().apply(obj, args);
                         obj._name = name;
                         obj._from = namespace_clazz;
+                        resource_clazz.constructor().apply(obj, args);
                         storage.set(name, obj);
                     }
                     return obj;
@@ -97,10 +107,51 @@
 
     class Shader extends Resource_Descriptor
     {
-    };
+        constructor()
+        {
+            super();
+            this._ctx = this._from._ctx;
 
-    class Program
+            this._kind_to_gl = new Map;
+            this._kind_to_gl.set('vertex', this._ctx.VERTEX_SHADER);
+            this._kind_to_gl.set('fragment', this._ctx.FRAGMENT_SHADER);
+        }
+
+        _do_create_default_config()
+        {
+            return {
+                kind: 'vertex',
+                source: '',
+            };
+        }
+
+        _do_create_native_resource()
+        {
+            const ctx = this._ctx;
+            const cfg = this.config();
+            const shader = ctx.createShader(this._kind_to_gl.get(cfg.kind));
+            ctx.shaderSource(shader, cfg.source);
+            ctx.compileShader(shader);
+            return shader;
+        }
+
+        _do_destroy_native_resource(maybe_resource)
+        {
+            // Nothing to do.
+        }
+    };
+    window.Shader = Shader;
+
+    class Program extends Resource_Descriptor
     {
+        shader(kind, source)
+        {
+            const s = Clazz.create_resource(this, '', Shader);
+            const cfg = s.mutable_config();
+            cfg.kind = kind;
+            cfg.source = source;
+            s.native_resource(); // TODO
+        }
     };
 
     class Texture
@@ -119,7 +170,7 @@
             Clazz.add_resource(this, 'texture', Texture);
             Clazz.add_resource(this, 'pipeline', Pipeline);
 
-            this.ctx = canvas.getContext('webgl2');
+            this._ctx = canvas.getContext('webgl2');
         }
     };
 
