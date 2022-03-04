@@ -1,4 +1,4 @@
-'use strict';
+// @ts-check
 
 (function () {
     const p3rr = {};

@@ -1,9 +1,12 @@
 {
     "compilerOptions": {
+        "target": "ES6",
         "module": "system",
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
+        "strictNullChecks": true,
+        "strict": true,
         "outFile": "final.js",
         "sourceMap": true
     },

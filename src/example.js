@@ -1,4 +1,4 @@
-'use strict';
+// @ts-check
 
 (function (p3rr) {
     const canvas = document.querySelector('canvas');
